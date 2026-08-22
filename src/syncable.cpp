@@ -1,4 +1,4 @@
-#include "jaythread/szyncable.hpp"
+#include "jaythread/syncable.hpp"
 #include "freertos/idf_additions.h"
 
 void Syncable::suspend() {
