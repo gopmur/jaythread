@@ -1,2 +1,3 @@
 description: "A java inspired multi threading library for embedded usage"
 repository: "https://github.com/gopmur/jaythread"
+version: "1.0.2"
