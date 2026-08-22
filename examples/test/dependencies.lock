@@ -1,0 +1,16 @@
+dependencies:
+  idf:
+    source:
+      type: idf
+    version: 6.0.2
+  jaythread:
+    dependencies: []
+    source:
+      path: ../..
+      type: local
+    version: '*'
+direct_dependencies:
+- jaythread
+manifest_hash: 3112d915586602e17871119a1934cbbb4bb86203c611afa23d1285c93349bca0
+target: esp32c5
+version: 3.0.0
