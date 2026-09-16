@@ -1,6 +1,7 @@
 #include "jaythread/sync.hpp"
 #include "freertos/idf_additions.h"
 #include "freertos/projdefs.h"
+#include "portmacro.h"
 
 void Sync::sleep(size_t delay_ms) {
   vTaskDelay(pdMS_TO_TICKS(delay_ms));
@@ -20,4 +21,12 @@ void Sync::wait_for_notification() {
 
 bool Sync::wait_for_notification(int ms_to_wait) {
   return ulTaskNotifyTake(false, pdMS_TO_TICKS(ms_to_wait)) != 0;
+}
+
+void Sync::suspend() {
+  vTaskSuspend(nullptr);
+}
+
+void Sync::clear_notifications() {
+  xTaskNotifyStateClear(nullptr);
 }

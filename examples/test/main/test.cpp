@@ -32,5 +32,6 @@ ProducerThread producer_thread;
 
 extern "C" void app_main(void) {
   consumer_thread.start("consumer", 1, 4096);
+  consumer_thread.start("consumer", 1, 4096);
   producer_thread.start("producer", 2, 4096);
 }
