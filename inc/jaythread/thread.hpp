@@ -2,9 +2,10 @@
 
 #include <atomic>
 #include <string>
-#include "syncable.hpp"
+#include "jaythread/executable.hpp"
+#include "executable.hpp"
 
-class Thread : public Syncable {
+class Thread : public Executable {
  private:
   std::atomic_bool started = false;
 

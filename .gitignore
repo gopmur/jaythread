@@ -2,3 +2,4 @@ examples/*/build
 examples/*/.cache
 dist
 build
+.clangd

@@ -3,10 +3,10 @@
 #include <string>
 #include "freertos/FreeRTOS.h"
 #include "freertos/idf_additions.h"
-#include "jaythread/syncable.hpp"
+#include "jaythread/executable.hpp"
 
 template <size_t STACK_SIZE>
-class StaticThread : public Syncable {
+class StaticThread : public Executable {
  private:
   uint8_t stack[STACK_SIZE];
   StaticTask_t task_buffer;
@@ -23,6 +23,8 @@ void StaticThread<STACK_SIZE>::start(std::string name, int priority) {
   if (handle != nullptr) {
     return;
   }
+  set_stack_size(STACK_SIZE);
   handle = xTaskCreateStatic(_main, name.c_str(), STACK_SIZE, nullptr, priority,
                              stack, &task_buffer);
+  this->register_to_list();
 }
