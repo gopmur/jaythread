@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <vector>
 #include "freertos/idf_additions.h"
 #include "jaythread/ipc/mutex.hpp"
@@ -13,6 +12,8 @@ struct ThreadStatus {
   size_t min_free_stack;
   float cpu_usage;
   eTaskState state;
+
+  const char* get_state_view();
 };
 
 class Executable {

@@ -1,6 +1,8 @@
 #include "jaythread/executable.hpp"
 #include <cstring>
 #include "FreeRTOSConfig.h"
+#include "jaythread/consts.hpp"
+#include "esp_log.h"
 #include "freertos/idf_additions.h"
 
 Mutex Executable::thread_list_mutex;
@@ -86,4 +88,23 @@ std::vector<ThreadStatus> Executable::get_threads_status() {
     }
   }
   return status_list;
+}
+
+const char* ThreadStatus::get_state_view() {
+  switch (state) {
+    case eRunning:
+      return "running";
+    case eReady:
+      return "ready";
+    case eBlocked:
+      return "blocked";
+    case eSuspended:
+      return "suspended";
+    case eDeleted:
+      return "deleted";
+    case eInvalid:
+      return "invalid";
+  }
+  ESP_LOGW(JAY_LOG_TAG, "invalid state %d", state);
+  return "unkown";
 }
