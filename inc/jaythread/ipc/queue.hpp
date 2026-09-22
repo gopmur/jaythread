@@ -7,12 +7,12 @@
 
 template <typename T, int N>
 class Queue {
-  private:
+ private:
   T queue_data[N];
   StaticQueue_t queue_instance;
   QueueHandle_t queue;
 
-  public:
+ public:
   Queue();
   bool send(T val, int ticks_to_wait);
   bool send(T val);
@@ -27,7 +27,8 @@ class Queue {
 
 template <typename T, int N>
 Queue<T, N>::Queue() {
-  queue = xQueueCreateStatic(N, sizeof(T), reinterpret_cast<uint8_t*>(queue_data), &queue_instance);
+  queue = xQueueCreateStatic(
+      N, sizeof(T), reinterpret_cast<uint8_t*>(queue_data), &queue_instance);
 }
 
 template <typename T, int N>
@@ -38,6 +39,9 @@ bool Queue<T, N>::send(T val, int ticks_to_wait) {
 template <typename T, int N>
 bool Queue<T, N>::send_from_isr(T val) {
   BaseType_t higher_priority_task_woken = false;
+  if (higher_priority_task_woken) {
+    portYIELD_FROM_ISR();
+  }
   return xQueueSendFromISR(queue, &val, &higher_priority_task_woken);
 }
 

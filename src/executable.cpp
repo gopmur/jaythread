@@ -1,9 +1,9 @@
 #include "jaythread/executable.hpp"
 #include <cstring>
 #include "FreeRTOSConfig.h"
-#include "jaythread/consts.hpp"
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
+#include "jaythread/consts.hpp"
 
 Mutex Executable::thread_list_mutex;
 std::vector<Executable> Executable::thread_list;
@@ -50,6 +50,9 @@ void Executable::notify() {
 
 void Executable::notify_from_isr() {
   BaseType_t higher_priority_task_woken = false;
+  if (higher_priority_task_woken) {
+    portYIELD_FROM_ISR();
+  }
   vTaskNotifyGiveFromISR(handle, &higher_priority_task_woken);
 }
 
