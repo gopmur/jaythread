@@ -5,7 +5,7 @@
 #include "jaythread/ipc/mutex.hpp"
 
 struct ThreadStatus {
-  char name[configMAX_TASK_NAME_LEN];
+  char name[configMAX_TASK_NAME_LEN + 1];
   size_t current_priority;
   size_t base_priority;
   size_t stack_size;
