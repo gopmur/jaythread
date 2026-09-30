@@ -10,7 +10,7 @@ class Thread : public Executable {
   std::atomic_bool started = false;
 
  public:
-  void start(std::string name, int priority, int stack_size);
+  bool start(std::string name, int priority, int stack_size);
   static void _main(Thread* self);
   virtual void main() = 0;
 };
