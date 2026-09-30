@@ -16,19 +16,26 @@ struct ThreadStatus {
   const char* get_state_view();
 };
 
+struct ThreadRuntime {
+  TaskHandle_t handle = nullptr;
+  configRUN_TIME_COUNTER_TYPE prev_runtime = 0;
+};
+
 class Executable {
- private:
+  private:
   static Mutex thread_list_mutex;
   static std::vector<Executable> thread_list;
+  static std::vector<ThreadRuntime> thread_runtimes;
+  static void update_thread_runtimes(std::vector<TaskStatus_t>& status_list);
   size_t stack_size = 0;
 
- protected:
+  protected:
   TaskHandle_t handle;
   void set_stack_size(size_t stack_size);
   void register_to_list();
   void remove_from_list();
 
- public:
+  public:
   void suspend();
   void resume();
   void resume_from_isr();

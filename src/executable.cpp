@@ -7,6 +7,7 @@
 
 Mutex Executable::thread_list_mutex;
 std::vector<Executable> Executable::thread_list;
+std::vector<ThreadRuntime> Executable::thread_runtimes;
 
 void Executable::register_to_list() {
   thread_list_mutex.take();
@@ -50,38 +51,73 @@ void Executable::notify() {
 
 void Executable::notify_from_isr() {
   BaseType_t higher_priority_task_woken = false;
+  vTaskNotifyGiveFromISR(handle, &higher_priority_task_woken);
   if (higher_priority_task_woken) {
     portYIELD_FROM_ISR();
   }
-  vTaskNotifyGiveFromISR(handle, &higher_priority_task_woken);
 }
 
 void Executable::set_stack_size(size_t stack_size) {
   this->stack_size = stack_size;
 }
 
+void add_to_runtimes(TaskHandle_t handle) {}
+
+void Executable::update_thread_runtimes(std::vector<TaskStatus_t>& status_list) {
+  auto thread_runtimes_copy = thread_runtimes;
+  thread_runtimes = {};
+  for (auto thread_runtime : thread_runtimes_copy) {
+    for (auto status : status_list) {
+      if (thread_runtime.handle == status.xHandle) {
+        thread_runtimes.push_back(thread_runtime);
+      }
+    }
+  }
+  for (auto status : status_list) {
+    bool found = false;
+    for (auto thread_runtime : thread_runtimes) {
+      if (status.xHandle == thread_runtime.handle) {
+        found = true;
+      }
+    }
+    if (!found) {
+      thread_runtimes.push_back({.handle = status.xHandle, .prev_runtime = 0});
+    }
+  }
+}
+
 std::vector<ThreadStatus> Executable::get_threads_status() {
+  static configRUN_TIME_COUNTER_TYPE prev_total_counter = 0;
   size_t native_task_count = uxTaskGetNumberOfTasks();
   std::vector<ThreadStatus> status_list(native_task_count);
   std::vector<TaskStatus_t> native_status_list(native_task_count);
-  configRUN_TIME_COUNTER_TYPE total_counter = 0;
-  uxTaskGetSystemState(native_status_list.data(), native_task_count,
-                       &total_counter);
+  configRUN_TIME_COUNTER_TYPE current_total_counter = 0;
+  uxTaskGetSystemState(native_status_list.data(), native_task_count, &current_total_counter);
+  configRUN_TIME_COUNTER_TYPE total_counter = current_total_counter - prev_total_counter;
+  prev_total_counter = current_total_counter;
   if (total_counter == 0) {
     total_counter = 1;
   }
   thread_list_mutex.take();
   auto thread_list = Executable::thread_list;
   thread_list_mutex.give();
+  update_thread_runtimes(native_status_list);
   for (size_t i = 0; i < native_task_count; i++) {
     auto status = &status_list[i];
     auto native_status = native_status_list[i];
+    configRUN_TIME_COUNTER_TYPE runtime = 0;
     uint32_t thread_counter = native_status_list[i].ulRunTimeCounter;
+    for (auto& thread_runtime : thread_runtimes) {
+      if (thread_runtime.handle == native_status.xHandle) {
+        runtime = thread_counter - thread_runtime.prev_runtime;
+        thread_runtime.prev_runtime = thread_counter;
+      }
+    }
     status->min_free_stack = native_status.usStackHighWaterMark;
     status->current_priority = native_status.uxCurrentPriority;
     status->base_priority = native_status.uxBasePriority;
     status->state = native_status.eCurrentState;
-    status->cpu_usage = ((float)thread_counter / (float)total_counter) * 100.0f;
+    status->cpu_usage = ((float)runtime / (float)total_counter) * 100.0f;
     strncpy(status->name, native_status.pcTaskName, configMAX_TASK_NAME_LEN);
     for (auto thread : thread_list) {
       if (thread.handle == native_status.xHandle) {
