@@ -19,5 +19,5 @@ bool Thread::start(std::string name, int priority, int stack_size) {
   xTaskCreate(reinterpret_cast<void (*)(void*)>(_main), name.c_str(),
               stack_size, this, priority, &this->handle);
   register_to_list();
-  return false
+  return false;
 }
