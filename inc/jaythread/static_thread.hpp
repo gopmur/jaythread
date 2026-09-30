@@ -13,18 +13,19 @@ class StaticThread : public Executable {
   bool instantiated = false;
 
  public:
-  void start(std::string name, int priority);
+  bool start(std::string name, int priority);
   static void _main(StaticThread<STACK_SIZE>* self);
   virtual void main() = 0;
 };
 
 template <size_t STACK_SIZE>
-void StaticThread<STACK_SIZE>::start(std::string name, int priority) {
+bool StaticThread<STACK_SIZE>::start(std::string name, int priority) {
   if (handle != nullptr) {
-    return;
+    return false;
   }
   set_stack_size(STACK_SIZE);
   handle = xTaskCreateStatic(_main, name.c_str(), STACK_SIZE, nullptr, priority,
                              stack, &task_buffer);
   this->register_to_list();
+  return false;
 }

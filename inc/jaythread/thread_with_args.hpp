@@ -23,7 +23,7 @@ class ThreadWithArg : public Executable {
   std::atomic_bool started = false;
 
  public:
-  void start(std::string name, int priority, int stack_size, T arg);
+  bool start(std::string name, int priority, int stack_size, T arg);
   static void _main(ThreadArg<T>* arg);
   virtual void main(T*) = 0;
 };
@@ -41,13 +41,13 @@ void ThreadWithArg<T>::_main(ThreadArg<T>* _arg) {
 }
 
 template <typename T>
-void ThreadWithArg<T>::start(std::string name,
+bool ThreadWithArg<T>::start(std::string name,
                              int priority,
                              int stack_size,
                              T arg) {
   if (started.exchange(true)) {
     ESP_LOGE(JAY_LOG_TAG, "duplicate start called on thread %s", name.c_str());
-    return;
+    return false;
   }
   set_stack_size(stack_size);
   auto thread_arg = new ThreadArg<T>;
@@ -56,4 +56,5 @@ void ThreadWithArg<T>::start(std::string name,
   xTaskCreate(reinterpret_cast<void (*)(void*)>(_main), name.c_str(),
               stack_size, thread_arg, priority, &this->handle);
   register_to_list();
+  return true;
 }
